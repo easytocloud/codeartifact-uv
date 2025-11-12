@@ -120,6 +120,14 @@ update_uv_config() {
         simple_url="https://${domain}-${domain_owner}.d.codeartifact.${region}.amazonaws.com/pypi/${repo}/simple/"
     fi
 
+    # Build publish URL with credentials
+    local publish_url_with_creds
+    if [[ -n "${token}" ]]; then
+        publish_url_with_creds="https://aws:${token}@${domain}-${domain_owner}.d.codeartifact.${region}.amazonaws.com/pypi/${repo}/"
+    else
+        publish_url_with_creds="${baseurl}/"
+    fi
+
     # Write uv config
     {
         echo "# AWS CodeArtifact index"
@@ -130,13 +138,8 @@ update_uv_config() {
         echo "[[index]]"
         echo "name = \"${repo}\""
         echo "url = \"${simple_url}\""
-        if [[ -n "${token}" ]]; then
-            echo ""
-            echo "# Global publish URL with embedded credentials for 'uv publish'"
-            echo "publish-url = \"https://aws:${token}@${domain}-${domain_owner}.d.codeartifact.${region}.amazonaws.com/pypi/${repo}/\""
-        else
-            echo "publish-url = \"${baseurl}/\""
-        fi
+        echo "publish-url = \"${publish_url_with_creds}\""
+        echo "default = true"
     } > "${UVCONFIG}"
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Updated ${UVCONFIG}" >&2
