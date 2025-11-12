@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.0...v1.0.1) (2025-11-12)
+
+
+### Bug Fixes
+
+* indent in release.yml ([5d3d29f](https://github.com/easytocloud/codeartifact-uv/commit/5d3d29f66da5dfc2268b850fdc6ebfae1b11e6a7))
+
 # 1.0.0 (2025-11-12)
 
 
