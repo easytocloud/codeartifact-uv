@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.1...v1.0.2) (2025-11-12)
+
+
+### Bug Fixes
+
+* fswatch optional ([dc0f66a](https://github.com/easytocloud/codeartifact-uv/commit/dc0f66aafe6f2df35cb81d93dc7738ebc31a72d2))
+
 ## [1.0.1](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.0...v1.0.1) (2025-11-12)
 
 
