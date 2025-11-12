@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.5...v1.0.6) (2025-11-12)
+
+
+### Bug Fixes
+
+* default to ca for publish ([c7aea05](https://github.com/easytocloud/codeartifact-uv/commit/c7aea05e84e5b850ca6133926bb0b9b0a3fa974f))
+
 ## [1.0.5](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.4...v1.0.5) (2025-11-12)
 
 
