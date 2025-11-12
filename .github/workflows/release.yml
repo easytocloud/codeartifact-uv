@@ -60,7 +60,7 @@ jobs:
           # Custom dependencies in case other formulas are needed to build the current one.
           # Optional - multiline string.
           depends_on: |
-            fswatch
+            depends_on "fswatch"
 
           # Custom install command for your formula.
           # Required - string.
