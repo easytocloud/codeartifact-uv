@@ -1,33 +1,261 @@
-![release workflow](https://github.com/easytocloud/brewable/actions/workflows/release.yml/badge.svg)
+![release workflow](https://github.com/easytocloud/codeartifact-uv/actions/workflows/release.yml/badge.svg)
 
-# brewable
+# codeartifact-uv
 
-Template for brewable product
+Automatically sync AWS CodeArtifact configuration from pip to uv.
 
-# CHANGE
+## Why codeartifact-uv?
 
-## Product
+When you run `aws codeartifact login --tool pip`, it updates your `~/.config/pip/pip.conf` with CodeArtifact credentials. However, if you also use `uv` (the fast Python package installer), you need to manually configure it separately.
 
-- Add your product distribution/bin and distribution/completions
+`codeartifact-uv` solves this by automatically syncing your pip configuration to uv's configuration whenever the pip config changes. It extracts all necessary information (domain, account ID, region, repository) directly from your pip config and fetches a fresh authentication token.
 
-## README
+## Features
 
-- Change brewable in badge into repo-name (top line in README)
-- Write instructions and sample usecases
+- **Automatic Configuration Sync**: Watches pip config and updates uv config automatically
+- **No Manual Configuration**: All settings extracted from existing pip config
+- **Fresh Tokens**: Fetches new CodeArtifact tokens on each sync
+- **Multiple Sync Methods**: Choose between file watcher or shell hook
+- **Zero Hardcoded Defaults**: Works with any CodeArtifact setup
 
-## Workflow
+## Install
 
-In .github/workflow/release.yml
+### Using Homebrew
 
-- Change branchname
-- Change description
-- Modify installables
+```bash
+brew tap easytocloud/tap
+brew install codeartifact-uv
+```
 
-## GitHub
+### Manual Installation
 
-- Write a short 'About'
-- Add repo to Fine Grained Access token github-easytocloud-brew [Account]
-- Add OP_SERVICE_ACCOUNT_TOKEN to Secrets & Variables -> Actions when not in Organization Secrets already [Repo]
+```bash
+# Copy the script to your PATH
+cp distribution/bin/sync-pip-to-uv /usr/local/bin/
+chmod +x /usr/local/bin/sync-pip-to-uv
+```
 
-The OP (1Password) token gives access to my 1password account's CICD vault that has the actual secret to use the Fine Grained Access token,
-giving the necessary permissions on the source repo as well as the Homebrew Tap repo.
+### Install File Watcher (Required for `watch` mode)
+
+**macOS:**
+```bash
+brew install fswatch
+```
+
+**Linux:**
+```bash
+# Debian/Ubuntu
+apt-get install inotify-tools
+
+# RHEL/CentOS
+yum install inotify-tools
+```
+
+## Usage
+
+### Method 1: File Watcher (Recommended)
+
+The file watcher monitors your pip config in the background and automatically syncs whenever it changes.
+
+**Start watcher in background:**
+```bash
+sync-pip-to-uv watch > /dev/null 2>&1 &
+```
+
+**Add to your shell startup (`~/.zshrc` or `~/.bashrc`):**
+```bash
+# Start sync-pip-to-uv watcher in background
+if command -v sync-pip-to-uv >/dev/null 2>&1; then
+    sync-pip-to-uv watch > /dev/null 2>&1 &
+fi
+```
+
+**Workflow:**
+```bash
+# Login to CodeArtifact (updates pip config)
+aws codeartifact login --tool pip
+
+# uv config is automatically updated by the watcher
+uv pip install some-package
+```
+
+### Method 2: Shell Hook (Lightweight Alternative)
+
+If you prefer not to run a background process, use the shell hook which checks for changes before each prompt.
+
+**Add to `~/.zshrc` or `~/.bashrc`:**
+```bash
+eval "$(sync-pip-to-uv setup-hook)"
+```
+
+**Or manually append:**
+```bash
+sync-pip-to-uv setup-hook >> ~/.zshrc
+```
+
+### Method 3: Manual Sync
+
+Manually trigger a sync whenever needed:
+
+```bash
+# After running aws codeartifact login
+aws codeartifact login --tool pip
+sync-pip-to-uv sync
+```
+
+## How It Works
+
+1. **Reads pip config**: Extracts the `index-url` from `~/.config/pip/pip.conf`
+2. **Parses CodeArtifact URL**: Extracts domain, account ID, region, and repository name
+3. **Fetches fresh token**: Uses AWS CLI to get a new CodeArtifact authentication token
+4. **Writes uv config**: Creates/updates `~/.config/uv/uv.toml` with the configuration and token
+5. **Caches state**: Remembers the pip config state to avoid unnecessary syncs
+
+### Example Flow
+
+```bash
+# 1. Login to CodeArtifact (updates pip config)
+$ aws codeartifact login --tool pip --domain my-domain --repository my-repo
+
+# 2. sync-pip-to-uv detects the change and updates uv config
+→ Detected change in /home/user/.config/pip/pip.conf
+[2025-11-12 15:30:00] Updated /home/user/.config/uv/uv.toml
+  Domain: my-domain
+  Repository: my-repo
+  Region: us-east-1
+
+# 3. uv now uses CodeArtifact automatically
+$ uv pip install my-private-package
+```
+
+## Commands
+
+```bash
+sync-pip-to-uv sync        # Sync pip config to uv config once (default)
+sync-pip-to-uv check       # Check if pip config has changed
+sync-pip-to-uv watch       # Watch pip config for changes and auto-sync
+sync-pip-to-uv setup-hook  # Print shell hook code for .zshrc/.bashrc
+sync-pip-to-uv help        # Show help message
+```
+
+## Configuration Files
+
+### Input: `~/.config/pip/pip.conf`
+
+Created by `aws codeartifact login --tool pip`:
+```ini
+[global]
+index-url = https://aws:TOKEN@domain-123456789012.d.codeartifact.us-east-1.amazonaws.com/pypi/repo/simple/
+```
+
+### Output: `~/.config/uv/uv.toml`
+
+Generated by `sync-pip-to-uv`:
+```toml
+# AWS CodeArtifact index
+# Auto-generated by sync-pip-to-uv on 2025-11-12 15:30:00
+# Source: /home/user/.config/pip/pip.conf
+# Domain: my-domain, Account: 123456789012, Region: us-east-1
+
+[[index]]
+name = "my-repo"
+url = "https://domain-123456789012.d.codeartifact.us-east-1.amazonaws.com/pypi/repo/simple/"
+publish-url = "https://domain-123456789012.d.codeartifact.us-east-1.amazonaws.com/pypi/repo/"
+
+[index.my-repo.credentials]
+username = "aws"
+password = "eyJ2Z... (fresh token)"
+```
+
+## Troubleshooting
+
+### Token Retrieval Fails
+
+**Symptoms:**
+```
+Warning: could not retrieve AWS CodeArtifact token
+```
+
+**Solutions:**
+- Ensure AWS CLI is installed and configured: `aws configure`
+- Verify you have CodeArtifact permissions: `aws codeartifact list-repositories`
+- Check AWS credentials are valid: `aws sts get-caller-identity`
+
+### File Watcher Not Working
+
+**macOS:**
+```bash
+# Install fswatch
+brew install fswatch
+
+# Verify it's installed
+which fswatch
+```
+
+**Linux:**
+```bash
+# Install inotify-tools
+apt-get install inotify-tools  # Debian/Ubuntu
+yum install inotify-tools      # RHEL/CentOS
+
+# Verify it's installed
+which inotifywait
+```
+
+### Not a CodeArtifact URL
+
+**Symptoms:**
+```
+Not a CodeArtifact URL, skipping
+```
+
+**Solution:**
+This is normal if you're not using CodeArtifact. The tool only syncs when it detects a CodeArtifact URL in your pip config.
+
+### Check if Sync is Working
+
+```bash
+# Check if pip config has changed
+sync-pip-to-uv check
+echo $?  # 0 = changed, 1 = unchanged
+
+# Force a sync
+sync-pip-to-uv sync
+
+# Verify uv config was created
+cat ~/.config/uv/uv.toml
+```
+
+## Comparison with ca-uvx
+
+| Feature | codeartifact-uv | ca-uvx |
+|---------|----------------|---------|
+| Purpose | Config sync tool | Wrapper for uvx/uv |
+| Approach | Monitors pip config | Wrapper command |
+| Configuration | Automatic from pip | Manual or from uv.toml |
+| Token Management | Syncs on pip config change | Fresh token per invocation |
+| Use Case | Keep pip and uv in sync | Replace uvx command |
+
+**Use codeartifact-uv when:**
+- You already use `aws codeartifact login --tool pip`
+- You want pip and uv to stay in sync automatically
+- You prefer transparent configuration management
+
+**Use ca-uvx when:**
+- You want to use uvx with CodeArtifact
+- You prefer wrapping commands
+- You need per-invocation token refresh
+
+## License
+
+MIT
+
+## Contributing
+
+Contributions welcome! Please open an issue or submit a pull request.
+
+## Links
+
+- [GitHub Repository](https://github.com/easytocloud/codeartifact-uv)
+- [AWS CodeArtifact Documentation](https://docs.aws.amazon.com/codeartifact/)
+- [uv Documentation](https://docs.astral.sh/uv/)

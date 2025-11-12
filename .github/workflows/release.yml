@@ -3,7 +3,7 @@
 on:
   push:
     branches:
-      - changethis
+      - main
     
 jobs:
   homebrew-releaser:
@@ -35,7 +35,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.load-github-credentials.outputs.HOMEBREW_TAP_GITHUB_TOKEN  }}
 
-      - name: Release akskrotate to easytocloud/homebrew-tap
+      - name: Release codeartifact-uv to easytocloud/homebrew-tap
         if: steps.semantic.outputs.new_release_published == 'true'
         uses: Justintime50/homebrew-releaser@v1
         with:
@@ -59,16 +59,17 @@ jobs:
 
           # Custom dependencies in case other formulas are needed to build the current one.
           # Optional - multiline string.
-          
+          depends_on: |
+            fswatch
 
           # Custom install command for your formula.
           # Required - string.
           install: |
-		bin.install "distribution/bin/xxx" 
-		zsh_completion.install "distribution/completions/_xxx"
+		bin.install "distribution/bin/sync-pip-to-uv"
 
           # Custom test command for your formula so you can run `brew test`.
           # Optional - string.
+          test: 'system "#{bin}/sync-pip-to-uv", "help"'
 
           # Adds URL and checksum targets for different OS and architecture pairs. Using this option assumes 
           # a tar archive exists on your GitHub repo with the following URL pattern (this cannot be customized):
