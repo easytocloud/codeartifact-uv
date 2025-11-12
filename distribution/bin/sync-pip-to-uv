@@ -131,6 +131,13 @@ update_uv_config() {
         echo "name = \"${repo}\""
         echo "url = \"${simple_url}\""
         echo "publish-url = \"${baseurl}/\""
+        if [[ -n "${token}" ]]; then
+            echo ""
+            echo "# Publish credentials"
+            echo "[publish]"
+            echo "username = \"aws\""
+            echo "password = \"${token}\""
+        fi
     } > "${UVCONFIG}"
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Updated ${UVCONFIG}" >&2
