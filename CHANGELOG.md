@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.4...v1.0.5) (2025-11-12)
+
+
+### Bug Fixes
+
+* modify uv.toml for publish ([ea464d1](https://github.com/easytocloud/codeartifact-uv/commit/ea464d1ff5a751b276d787c6d176813347971911))
+
 ## [1.0.4](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.3...v1.0.4) (2025-11-12)
 
 
