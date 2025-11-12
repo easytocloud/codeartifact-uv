@@ -97,12 +97,6 @@ update_uv_config() {
         return 1
     fi
 
-    # Remove credentials from URL for base URL and simple URL
-    local baseurl
-    local simple_url
-    baseurl=$(echo "${url}" | sed -E 's|https://aws:[^@]+@|https://|' | sed 's|/simple/$||')
-    simple_url="${baseurl}/simple/"
-
     # Get fresh token
     local token
     token=$(get_token "${domain}" "${domain_owner}" "${region}")
@@ -111,6 +105,19 @@ update_uv_config() {
         echo "Warning: could not retrieve AWS CodeArtifact token" >&2
         echo "         Ensure AWS CLI is configured and you have access to:" >&2
         echo "         Domain: ${domain}, Account: ${domain_owner}, Region: ${region}" >&2
+    fi
+
+    # Build URLs with embedded credentials (uv format)
+    local baseurl
+    local simple_url
+    baseurl="https://${domain}-${domain_owner}.d.codeartifact.${region}.amazonaws.com/pypi/${repo}"
+
+    if [[ -n "${token}" ]]; then
+        # Embed credentials in URL
+        simple_url="https://aws:${token}@${domain}-${domain_owner}.d.codeartifact.${region}.amazonaws.com/pypi/${repo}/simple/"
+    else
+        # URL without credentials (will fail but shows structure)
+        simple_url="https://${domain}-${domain_owner}.d.codeartifact.${region}.amazonaws.com/pypi/${repo}/simple/"
     fi
 
     # Write uv config
@@ -124,12 +131,6 @@ update_uv_config() {
         echo "name = \"${repo}\""
         echo "url = \"${simple_url}\""
         echo "publish-url = \"${baseurl}/\""
-        if [[ -n "${token}" ]]; then
-            echo ""
-            echo "[index.${repo}.credentials]"
-            echo "username = \"aws\""
-            echo "password = \"${token}\""
-        fi
     } > "${UVCONFIG}"
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Updated ${UVCONFIG}" >&2
