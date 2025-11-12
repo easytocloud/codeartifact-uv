@@ -130,13 +130,12 @@ update_uv_config() {
         echo "[[index]]"
         echo "name = \"${repo}\""
         echo "url = \"${simple_url}\""
-        echo "publish-url = \"${baseurl}/\""
         if [[ -n "${token}" ]]; then
             echo ""
-            echo "# Publish credentials"
-            echo "[publish]"
-            echo "username = \"aws\""
-            echo "password = \"${token}\""
+            echo "# Global publish URL with embedded credentials for 'uv publish'"
+            echo "publish-url = \"https://aws:${token}@${domain}-${domain_owner}.d.codeartifact.${region}.amazonaws.com/pypi/${repo}/\""
+        else
+            echo "publish-url = \"${baseurl}/\""
         fi
     } > "${UVCONFIG}"
 
