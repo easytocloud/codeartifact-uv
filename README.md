@@ -25,6 +25,9 @@ When you run `aws codeartifact login --tool pip`, it updates your `~/.config/pip
 ```bash
 brew tap easytocloud/tap
 brew install codeartifact-uv
+
+# Optional: Install fswatch for watch mode
+brew install fswatch
 ```
 
 ### Manual Installation
