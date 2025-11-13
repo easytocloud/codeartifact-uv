@@ -151,6 +151,7 @@ update_uv_config() {
         echo "[[index]]"
         echo "name = \"${repo}\""
         echo "url = \"${simple_url}\""
+        echo "publish-url = \"${publish_url_with_creds}\""
 
         # Add PyPI as fallback if enabled
         if [[ "${ENABLE_PYPI_FALLBACK}" == "true" ]]; then
@@ -160,10 +161,6 @@ update_uv_config() {
             echo "name = \"pypi\""
             echo "url = \"https://pypi.org/simple/\""
         fi
-
-        echo ""
-        echo "# Publishing configuration (uses CodeArtifact)"
-        echo "publish-url = \"${publish_url_with_creds}\""
     } > "${UVCONFIG}"
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Updated ${UVCONFIG}" >&2
