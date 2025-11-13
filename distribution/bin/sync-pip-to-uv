@@ -23,6 +23,9 @@ UVCONFIGDIR="${HOME}/.config/uv"
 UVCONFIG="${UVCONFIGDIR}/uv.toml"
 CACHE_FILE="${UVCONFIGDIR}/.pip-to-uv-cache"
 
+# Fallback to PyPI (can be overridden by environment variable)
+ENABLE_PYPI_FALLBACK="${SYNC_PIP_TO_UV_PYPI_FALLBACK:-true}"
+
 # --- Functions ---
 
 # Get CodeArtifact token via AWS CLI
@@ -140,6 +143,15 @@ update_uv_config() {
         echo "url = \"${simple_url}\""
         echo "publish-url = \"${publish_url_with_creds}\""
         echo "default = true"
+
+        # Add PyPI as fallback if enabled
+        if [[ "${ENABLE_PYPI_FALLBACK}" == "true" ]]; then
+            echo ""
+            echo "# PyPI fallback - tries CodeArtifact first, falls back to PyPI"
+            echo "[[index]]"
+            echo "name = \"pypi\""
+            echo "url = \"https://pypi.org/simple/\""
+        fi
     } > "${UVCONFIG}"
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Updated ${UVCONFIG}" >&2
@@ -228,11 +240,16 @@ Commands:
   setup-hook     Print shell hook code for .zshrc/.bashrc
   help           Show this help message
 
+Environment Variables:
+  SYNC_PIP_TO_UV_PYPI_FALLBACK    Enable PyPI fallback (default: true)
+                                  Set to 'false' to use only CodeArtifact
+
 How it works:
   1. Reads CodeArtifact configuration from ${PIPCONFIG}
   2. Parses domain, account ID, region, and repository from the index-url
   3. Fetches a fresh authentication token from AWS CodeArtifact
   4. Writes configuration to ${UVCONFIG}
+  5. Optionally adds PyPI as fallback index (tries CodeArtifact first)
 
 Files:
   ${PIPCONFIG}     Source pip configuration
@@ -255,6 +272,9 @@ Examples:
   # After AWS CodeArtifact login
   aws codeartifact login --tool pip
   # uv config will be automatically updated (if watcher or hook is active)
+
+  # Disable PyPI fallback (CodeArtifact only)
+  SYNC_PIP_TO_UV_PYPI_FALLBACK=false sync-pip-to-uv sync
 
 Installation:
   1. Install file watcher:
