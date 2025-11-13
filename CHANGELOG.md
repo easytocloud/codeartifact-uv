@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.6...v1.0.7) (2025-11-13)
+
+
+### Bug Fixes
+
+* added fallback support ([36881db](https://github.com/easytocloud/codeartifact-uv/commit/36881db736201ee247a1000ac168ef5d527dcc09))
+
 ## [1.0.6](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.5...v1.0.6) (2025-11-12)
 
 
