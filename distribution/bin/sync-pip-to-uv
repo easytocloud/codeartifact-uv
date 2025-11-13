@@ -138,20 +138,32 @@ update_uv_config() {
         echo "# Source: ${PIPCONFIG}"
         echo "# Domain: ${domain}, Account: ${domain_owner}, Region: ${region}"
         echo ""
+
+        # Add PyPI as fallback if enabled
+        if [[ "${ENABLE_PYPI_FALLBACK}" == "true" ]]; then
+            echo "# Index strategy: try all indexes until package is found"
+            echo "# This allows fallback from CodeArtifact to PyPI on any error"
+            echo "index-strategy = \"unsafe-first-match\""
+            echo ""
+        fi
+
+        echo "# Primary index: CodeArtifact (highest priority - tried first)"
         echo "[[index]]"
         echo "name = \"${repo}\""
         echo "url = \"${simple_url}\""
-        echo "publish-url = \"${publish_url_with_creds}\""
-        echo "default = true"
 
         # Add PyPI as fallback if enabled
         if [[ "${ENABLE_PYPI_FALLBACK}" == "true" ]]; then
             echo ""
-            echo "# PyPI fallback - tries CodeArtifact first, falls back to PyPI"
+            echo "# Fallback index: PyPI (tried if CodeArtifact fails)"
             echo "[[index]]"
             echo "name = \"pypi\""
             echo "url = \"https://pypi.org/simple/\""
         fi
+
+        echo ""
+        echo "# Publishing configuration (uses CodeArtifact)"
+        echo "publish-url = \"${publish_url_with_creds}\""
     } > "${UVCONFIG}"
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Updated ${UVCONFIG}" >&2
