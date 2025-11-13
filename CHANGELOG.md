@@ -1,3 +1,10 @@
+## [1.0.8](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.7...v1.0.8) (2025-11-13)
+
+
+### Bug Fixes
+
+* search order change ([39b353d](https://github.com/easytocloud/codeartifact-uv/commit/39b353d7ae994689df1692820704ea69de71d03a))
+
 ## [1.0.7](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.6...v1.0.7) (2025-11-13)
 
 
