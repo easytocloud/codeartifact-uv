@@ -1,3 +1,10 @@
+## [1.0.9](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.8...v1.0.9) (2025-11-13)
+
+
+### Bug Fixes
+
+* publish to codeartifact ([7b43dfe](https://github.com/easytocloud/codeartifact-uv/commit/7b43dfe628bbd11fb2ca78e9a5cfc9eeafe4229a))
+
 ## [1.0.8](https://github.com/easytocloud/codeartifact-uv/compare/v1.0.7...v1.0.8) (2025-11-13)
 
 
